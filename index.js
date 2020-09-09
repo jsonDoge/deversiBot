@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
-const { orderbookUrl } = require('./config');
+const BigNumber = require('bignumber.js');
+const { orderbookUrl, orderRange } = require('./config');
 
 function getSpreadMargins(orders) {
   let asks = [];
@@ -23,6 +24,13 @@ function getSpreadMargins(orders) {
   return { highestBid, lowestAsk };
 }
 
+function getPlacementRange(bestValue, percentRange) {
+  const percentageMultiplier = BigNumber(1).plus(percentRange / 2 / 100);
+  const high = BigNumber(bestValue).times(percentageMultiplier);
+  const low = BigNumber(bestValue).dividedBy(percentageMultiplier);
+  return { low, high };
+}
+
 async function main () {
   const res = await fetch(orderbookUrl);
   if (res.status !== 200) {
@@ -34,10 +42,17 @@ async function main () {
 
   console.info('highest bid: ', highestBid);
   console.info('lowest ask: ', lowestAsk);
+
+  const bidPlacementRange = getPlacementRange(highestBid, orderRange);
+  const askPlacementRange = getPlacementRange(lowestAsk, orderRange);
+
+  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
+  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 }
 
 main();
 
 module.exports = {
   _getSpreadMargins: getSpreadMargins,
+  _getPlacementRange: getPlacementRange,
 };
