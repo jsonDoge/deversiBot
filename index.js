@@ -72,9 +72,9 @@ function placeBid(bidPlacementRange) {
     orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
   );
   activeOrders.bids.push({ orderPrice, usdAmount: bidUsdAmount, ethAmount: bidEthAmount });
-  account.usd -= bidUsdAmount;
+  account.usd = account.usd.minus(bidUsdAmount);
 
-  console.info(`BID PLACED @${orderPrice} ${bidEthAmount}`);
+  console.info(`PLACED BID @${orderPrice} ${bidEthAmount}`);
 }
 
 function placeAsk(askPlacementRange) {
@@ -83,9 +83,9 @@ function placeAsk(askPlacementRange) {
     orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
   );
   activeOrders.asks.push({ orderPrice, usdAmount: askUsdAmount, ethAmount: askEthAmount });
-  account.eth -= askEthAmount;
+  account.eth = account.eth.minus(askEthAmount);
 
-  console.info(`ASK PLACED @${orderPrice} ${askEthAmount}`);
+  console.info(`PLACED ASK @${orderPrice} ${askEthAmount}`);
 }
 
 function placeOrders(bidPlacementRange, askPlacementRange) {
@@ -108,13 +108,19 @@ function checkClosedPositions(activeOrders, highestBid, lowestAsk) {
   let aquiredAssets = { usd: BigNumber(0), eth: BigNumber(0) };
   activeOrders.bids = activeOrders.bids.filter((b) => {
     const isOpen = !b.orderPrice.isGreaterThan(highestBid);
-    if (!isOpen) { aquiredAssets.eth = aquiredAssets.eth.plus(b.ethAmount); }
+    if (!isOpen) {
+      aquiredAssets.eth = aquiredAssets.eth.plus(b.ethAmount);
+      console.info(`FILLED BID @ ${b.orderPrice} (ETH - ${b.ethAmount} | USD - ${b.usdAmount})`);
+    }
     return isOpen;
   });
 
   activeOrders.asks = activeOrders.asks.filter((b) => {
     const isOpen = !b.orderPrice.isLessThan(lowestAsk);
-    if (!isOpen) { aquiredAssets.usd = aquiredAssets.usd.plus(b.usdAmount); }
+    if (!isOpen) {
+      aquiredAssets.usd = aquiredAssets.usd.plus(b.usdAmount);
+      console.info(`FILLED ASK @ ${b.orderPrice} (ETH - ${b.ethAmount} | USD - ${b.usdAmount})`);
+    }
     return isOpen;
   });
 
@@ -142,8 +148,8 @@ async function updateOrders() {
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 
   const aquiredAssets = checkClosedPositions(activeOrders, highestBid, lowestAsk);
-  account.usd += aquiredAssets.usd;
-  account.eth += aquiredAssets.eth;
+  account.usd = account.usd.plus(aquiredAssets.usd);
+  account.eth = account.eth.plus(aquiredAssets.eth);
   placeOrders(bidPlacementRange, askPlacementRange);
 }
 
@@ -157,9 +163,15 @@ async function main() {
 
   // balance printing
   setInterval(() => {
-    console.info('---ACCOUNT balance---');
-    console.info('USD: ', account.usd.toString());
-    console.info('ETH ', account.eth.toString());
+    console.info('---balance in ACCOUNT---');
+    console.info('USD: ', account.usd.toFixed());
+    console.info('ETH ', account.eth.toFixed());
+
+    console.info('---balance in USE---');
+    const usd = activeOrders.bids.reduce((usd, b) => usd.plus(b.usdAmount), BigNumber(0));
+    const eth = activeOrders.asks.reduce((eth, a) => eth.plus(a.ethAmount), BigNumber(0));
+    console.info('USD: ', usd.toFixed());
+    console.info('ETH ', eth.toFixed());
   }, 30000);
 }
 

@@ -9,6 +9,9 @@ const {
   _checkClosedPositions
 } = require('../index.js');
 
+// silence console
+console.info = () => {};
+
 describe('bot', function () {
   describe('getSpreadMargins', function () {
     it('should throw if no asks', function () {
