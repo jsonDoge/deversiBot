@@ -8,8 +8,12 @@ async function main () {
     return;
   }
   const orders = await res.json();
-  const asks = orders.filter((o) => o[2] < 0);
-  const bids = orders.filter((o) => o[2] > 0);
+  let asks = [];
+  let bids = [];
+  orders.forEach((o) => {
+    if (o[2] < 0) { asks.push(o); return; }
+    bids.push(o);
+  });
   
   console.info('bids: ', bids);
   console.info('asks: ', asks);
