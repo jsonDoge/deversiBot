@@ -40,9 +40,9 @@ function getSpreadMargins(orders) {
 }
 
 function getPlacementRange(bestValue, percentRange, boundaries = {}) {
-  const percentageMultiplier = BigNumber(1).plus(percentRange / 2 / 100);
-  let high = BigNumber(bestValue).times(percentageMultiplier);
-  let low = BigNumber(bestValue).dividedBy(percentageMultiplier);
+  const halfPercentageMultiplier = BigNumber(percentRange).dividedBy(200).plus(1);
+  let high = BigNumber(bestValue).times(halfPercentageMultiplier);
+  let low = BigNumber(bestValue).dividedBy(halfPercentageMultiplier);
 
   high = boundaries.upper && high.isGreaterThan(boundaries.upper) ? boundaries.upper : high;
   low = boundaries.lower && low.isLessThan(boundaries.lower) ? boundaries.lower : low;
@@ -56,13 +56,13 @@ function getOrderPrice(placementRange) {
 
 function getBidOrderAmounts(orderPrice, accountUsd, activeBids, maxBids) {
   const inputUsdAmount = BigNumber(accountUsd).dividedBy(maxBids - activeBids).dp(2, BigNumber.HALF_DOWN);
-  const outputEthAmount = BigNumber(inputUsdAmount / orderPrice).dp(18, BigNumber.HALF_DOWN);
+  const outputEthAmount = BigNumber(inputUsdAmount).dividedBy(orderPrice).dp(18, BigNumber.HALF_DOWN);
   return { inputUsdAmount, outputEthAmount };
 }
 
 function getAskOrderAmounts(orderPrice, accountEth, activeAsks, maxAsks) {
   const inputEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks).dp(18, BigNumber.HALF_DOWN);
-  const outputUsdAmount = BigNumber(inputEthAmount * orderPrice).dp(2, BigNumber.HALF_DOWN);
+  const outputUsdAmount = BigNumber(inputEthAmount).times(orderPrice).dp(2, BigNumber.HALF_DOWN);
   return { inputEthAmount, outputUsdAmount };
 }
 
@@ -136,7 +136,7 @@ async function updateOrders() {
   const orders = await res.json();
   const { highestBid, lowestAsk } = getSpreadMargins(orders);
 
-  const spreadMiddle = BigNumber(highestBid + lowestAsk).dividedBy(2);
+  const spreadMiddle = BigNumber(highestBid).plus(lowestAsk).dividedBy(2);
 
   const bidPlacementRange = getPlacementRange(highestBid, orderRange, { upper: spreadMiddle });
   const askPlacementRange = getPlacementRange(lowestAsk, orderRange, { lower: spreadMiddle });
