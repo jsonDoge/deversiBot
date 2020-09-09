@@ -17,6 +17,12 @@ async function main () {
   
   console.info('bids: ', bids);
   console.info('asks: ', asks);
+
+  const highestBid = bids.reduce((h, bid) => h = bid[1] > h ? bid[1] : h, bids[0][1]);
+  const lowestAsk = asks.reduce((l, ask) => l = ask[1] < l ? ask[1] : l, asks[0][1]);
+
+  console.info('highest bid: ', highestBid);
+  console.info('lowest ask: ', lowestAsk);
 }
 
 main();
