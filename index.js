@@ -152,6 +152,7 @@ async function main() {
   let isUpdating;
   setInterval(async () => {
     if (isUpdating) { console.error('Perfomance in order update interval'); return; }
+    console.info('Checking market...');
     await updateOrders();
   }, 5000);
 
