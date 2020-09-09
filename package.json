@@ -4,8 +4,8 @@
   "description": "deversifi based market making bot",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha",
-    "start": "node ./index.js"
+    "test": "cross-env NODE_ENV=test nyc mocha",
+    "start": "cross-env NODE_ENV=dev node ./index.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "bignumber.js": "9.0.0",
+    "cross-env": "7.0.2",
     "node-fetch": "2.6.1"
   }
 }
