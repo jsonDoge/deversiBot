@@ -27,6 +27,7 @@
     "eslint-plugin-mocha": "8.0.0"
   },
   "dependencies": {
+    "bignumber.js": "9.0.0",
     "node-fetch": "2.6.1"
   }
 }
