@@ -24,10 +24,13 @@ function getSpreadMargins(orders) {
   return { highestBid, lowestAsk };
 }
 
-function getPlacementRange(bestValue, percentRange) {
+function getPlacementRange(bestValue, percentRange, boundaries = {}) {
   const percentageMultiplier = BigNumber(1).plus(percentRange / 2 / 100);
-  const high = BigNumber(bestValue).times(percentageMultiplier);
-  const low = BigNumber(bestValue).dividedBy(percentageMultiplier);
+  let high = BigNumber(bestValue).times(percentageMultiplier);
+  let low = BigNumber(bestValue).dividedBy(percentageMultiplier);
+
+  high = boundaries.upper && high.isGreaterThan(boundaries.upper) ? boundaries.upper : high;
+  low = boundaries.lower && low.isLessThan(boundaries.lower) ? boundaries.lower : low; 
   return { low, high };
 }
 
@@ -43,11 +46,15 @@ async function main () {
   console.info('highest bid: ', highestBid);
   console.info('lowest ask: ', lowestAsk);
 
-  const bidPlacementRange = getPlacementRange(highestBid, orderRange);
-  const askPlacementRange = getPlacementRange(lowestAsk, orderRange);
+  const spreadMiddle = BigNumber(highestBid + lowestAsk).dividedBy(2);
+
+  const bidPlacementRange = getPlacementRange(highestBid, orderRange, { upper: spreadMiddle });
+  const askPlacementRange = getPlacementRange(lowestAsk, orderRange, { lower: spreadMiddle });
 
   console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
+
+
 }
 
 main();
