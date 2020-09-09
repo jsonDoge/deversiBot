@@ -84,9 +84,6 @@ function placeAsk(askPlacementRange) {
 }
 
 function placeOrders(bidPlacementRange, askPlacementRange) {
-  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
-  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
-
   const activeBids = activeOrders.bids.length;
   if (activeBids < allowedActiveOrders) {
     for (let i = 0; i < allowedActiveOrders - activeBids; i++) {
@@ -118,6 +115,9 @@ async function main() {
 
   const bidPlacementRange = getPlacementRange(highestBid, orderRange, { upper: spreadMiddle });
   const askPlacementRange = getPlacementRange(lowestAsk, orderRange, { lower: spreadMiddle });
+
+  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
+  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 
   placeOrders(bidPlacementRange, askPlacementRange);
 }
