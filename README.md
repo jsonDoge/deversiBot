@@ -1,6 +1,7 @@
 # deversiFi market making bot
 - tests: mocha | chai | nyc
 - linting: eslint
+- No persistance so after restart the account assets are reset to initial
 
 ## start bot steps
 - rename config.example.js -> config.js
