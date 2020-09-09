@@ -136,16 +136,10 @@ async function updateOrders() {
   const orders = await res.json();
   const { highestBid, lowestAsk } = getSpreadMargins(orders);
 
-  console.info('highest bid: ', highestBid);
-  console.info('lowest ask: ', lowestAsk);
-
   const spreadMiddle = BigNumber(highestBid + lowestAsk).dividedBy(2);
 
   const bidPlacementRange = getPlacementRange(highestBid, orderRange, { upper: spreadMiddle });
   const askPlacementRange = getPlacementRange(lowestAsk, orderRange, { lower: spreadMiddle });
-
-  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
-  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 
   const aquiredAssets = checkClosedPositions(activeOrders, highestBid, lowestAsk);
   account.usd = account.usd.plus(aquiredAssets.usd);
