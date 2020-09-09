@@ -5,7 +5,8 @@ const {
   _getSpreadMargins,
   _getPlacementRange,
   _getBidOrderAmounts,
-  _getAskOrderAmounts
+  _getAskOrderAmounts,
+  _checkClosedPositions
 } = require('../index.js');
 
 describe('bot', function () {
@@ -66,7 +67,7 @@ describe('bot', function () {
     });
   });
 
-  describe('getBidOrderAmounts', function() {
+  describe('getBidOrderAmounts', function () {
     it('should return equally divided usd amount for the bid', function () {
       const orderPrice = 500;
       const accountUsd = 1000;
@@ -88,7 +89,7 @@ describe('bot', function () {
     });
   });
 
-  describe('_getAskOrderAmounts', function() {
+  describe('getAskOrderAmounts', function () {
     it('should return equally divided eth amount for the ask', function () {
       const orderPrice = 500;
       const accountEth = 1;
@@ -107,6 +108,94 @@ describe('bot', function () {
 
       const { askUsdAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
       expect(askUsdAmount.toFixed()).to.equal('250');
+    });
+  });
+
+  describe('checkClosedPositions', function () {
+    it('should close bids above highest bid', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [
+          { orderPrice: BigNumber(301), bidUsdAmount: BigNumber(2), bidEthAmount: BigNumber(1) },
+        ],
+        asks: []
+      };
+
+      _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(activeOrders.bids.length).to.equal(0);
+    });
+
+    it('should not close bids below or equal to the highest bid', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [
+          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+        ],
+        asks: []
+      };
+
+      _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(activeOrders.bids.length).to.equal(1);
+    });
+
+    it('should close asks below the lowest ask', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [],
+        asks: [
+          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+        ]
+      };
+
+      _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(activeOrders.asks.length).to.equal(0);
+    });
+
+    it('should not close asks above or equal to the lowest ask', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [],
+        asks: [
+          { orderPrice: BigNumber(310), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+        ]
+      };
+
+      _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(activeOrders.asks.length).to.equal(1);
+    });
+
+    it('should return eth amount of closed bid orders', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [
+          { orderPrice: BigNumber(310), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+        ],
+        asks: []
+      };
+
+      const aquiredAssets = _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(aquiredAssets.eth.toString()).to.equal('1');
+      expect(aquiredAssets.usd.toString()).to.equal('0');
+    });
+
+    it('should return usd amount of closed ask orders', function () {
+      const highestBid = 300;
+      const lowestAsk = 310;
+      const activeOrders = {
+        bids: [],
+        asks: [
+          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+        ]
+      };
+
+      const aquiredAssets = _checkClosedPositions(activeOrders, highestBid, lowestAsk);
+      expect(aquiredAssets.eth.toString()).to.equal('0');
+      expect(aquiredAssets.usd.toString()).to.equal('2');
     });
   });
 });

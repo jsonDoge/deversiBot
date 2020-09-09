@@ -3,9 +3,14 @@ const BigNumber = require('bignumber.js');
 const {
   orderbookUrl,
   orderRange,
-  account,
+  initialAccount,
   allowedActiveOrders,
 } = require('./config');
+
+let account = {
+  usd: BigNumber(initialAccount.usd),
+  eth: BigNumber(initialAccount.eth)
+};
 
 let activeOrders = {
   bids: [],
@@ -99,6 +104,23 @@ function placeOrders(bidPlacementRange, askPlacementRange) {
   }
 }
 
+function checkClosedPositions(activeOrders, highestBid, lowestAsk) {
+  let aquiredAssets = { usd: BigNumber(0), eth: BigNumber(0) };
+  activeOrders.bids = activeOrders.bids.filter((b) => {
+    const isOpen = !b.orderPrice.isGreaterThan(highestBid);
+    if (!isOpen) { aquiredAssets.eth = aquiredAssets.eth.plus(b.ethAmount); }
+    return isOpen;
+  });
+
+  activeOrders.asks = activeOrders.asks.filter((b) => {
+    const isOpen = !b.orderPrice.isLessThan(lowestAsk);
+    if (!isOpen) { aquiredAssets.usd = aquiredAssets.usd.plus(b.usdAmount); }
+    return isOpen;
+  });
+
+  return aquiredAssets;
+}
+
 async function main() {
   const res = await fetch(orderbookUrl);
   if (res.status !== 200) {
@@ -119,6 +141,14 @@ async function main() {
   console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 
+  const aquiredAssets = checkClosedPositions(activeOrders, highestBid, lowestAsk);
+  account.usd += aquiredAssets.usd;
+  account.eth += aquiredAssets.eth;
+
+  console.info('---ACCOUNT balance---');
+  console.info('USD: ', account.usd.toString());
+  console.info('ETH ', account.eth.toString());
+
   placeOrders(bidPlacementRange, askPlacementRange);
 }
 
@@ -131,4 +161,5 @@ module.exports = {
   _getPlacementRange: getPlacementRange,
   _getBidOrderAmounts: getBidOrderAmounts,
   _getAskOrderAmounts: getAskOrderAmounts,
+  _checkClosedPositions: checkClosedPositions,
 };
