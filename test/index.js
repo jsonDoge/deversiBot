@@ -141,7 +141,7 @@ describe('bot', function () {
       const lowestAsk = 310;
       const activeOrders = {
         bids: [
-          { orderPrice: BigNumber(301), bidUsdAmount: BigNumber(2), bidEthAmount: BigNumber(1) },
+          { orderPrice: BigNumber(301), inputUsdAmount: BigNumber(2), outputEthAmount: BigNumber(1) },
         ],
         asks: []
       };
@@ -155,7 +155,7 @@ describe('bot', function () {
       const lowestAsk = 310;
       const activeOrders = {
         bids: [
-          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+          { orderPrice: BigNumber(300), inputUsdAmount: BigNumber(2), outputEthAmount: BigNumber(1) },
         ],
         asks: []
       };
@@ -170,7 +170,7 @@ describe('bot', function () {
       const activeOrders = {
         bids: [],
         asks: [
-          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+          { orderPrice: BigNumber(300), outputUsdAmount: BigNumber(2), inputEthAmount: BigNumber(1) },
         ]
       };
 
@@ -184,7 +184,7 @@ describe('bot', function () {
       const activeOrders = {
         bids: [],
         asks: [
-          { orderPrice: BigNumber(310), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+          { orderPrice: BigNumber(310), outputUsdAmount: BigNumber(2), inputEthAmount: BigNumber(1) },
         ]
       };
 
@@ -197,7 +197,7 @@ describe('bot', function () {
       const lowestAsk = 310;
       const activeOrders = {
         bids: [
-          { orderPrice: BigNumber(310), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+          { orderPrice: BigNumber(310), inputUsdAmount: BigNumber(2), outputEthAmount: BigNumber(1) },
         ],
         asks: []
       };
@@ -213,7 +213,7 @@ describe('bot', function () {
       const activeOrders = {
         bids: [],
         asks: [
-          { orderPrice: BigNumber(300), usdAmount: BigNumber(2), ethAmount: BigNumber(1) },
+          { orderPrice: BigNumber(300), outputUsdAmount: BigNumber(2), inputEthAmount: BigNumber(1) },
         ]
       };
 

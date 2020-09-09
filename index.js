@@ -105,21 +105,21 @@ function placeOrders(bidPlacementRange, askPlacementRange) {
 }
 
 function checkClosedPositions(activeOrders, highestBid, lowestAsk) {
-  let aquiredAssets = { usd: BigNumber(0), eth: BigNumber(0) };
+  const aquiredAssets = { usd: BigNumber(0), eth: BigNumber(0) };
   activeOrders.bids = activeOrders.bids.filter((b) => {
     const isOpen = !b.orderPrice.isGreaterThan(highestBid);
     if (!isOpen) {
-      aquiredAssets.eth = aquiredAssets.eth.plus(b.ethAmount);
-      console.info(`FILLED BID @ ${b.orderPrice} (ETH - ${b.ethAmount} | USD - ${b.usdAmount})`);
+      aquiredAssets.eth = aquiredAssets.eth.plus(b.outputEthAmount);
+      console.info(`FILLED BID @ ${b.orderPrice} (ETH - ${b.outputEthAmount} | USD - ${b.inputUsdAmount})`);
     }
     return isOpen;
   });
 
-  activeOrders.asks = activeOrders.asks.filter((b) => {
-    const isOpen = !b.orderPrice.isLessThan(lowestAsk);
+  activeOrders.asks = activeOrders.asks.filter((a) => {
+    const isOpen = !a.orderPrice.isLessThan(lowestAsk);
     if (!isOpen) {
-      aquiredAssets.usd = aquiredAssets.usd.plus(b.usdAmount);
-      console.info(`FILLED ASK @ ${b.orderPrice} (ETH - ${b.ethAmount} | USD - ${b.usdAmount})`);
+      aquiredAssets.usd = aquiredAssets.usd.plus(a.outputUsdAmount);
+      console.info(`FILLED ASK @ ${a.orderPrice} (ETH - ${a.inputEthAmount} | USD - ${a.outputUsdAmount})`);
     }
     return isOpen;
   });
@@ -165,8 +165,8 @@ async function main() {
     console.info('ETH ', account.eth.toFixed());
 
     console.info('---balance in USE---');
-    const usd = activeOrders.bids.reduce((usd, b) => usd.plus(b.usdAmount), BigNumber(0));
-    const eth = activeOrders.asks.reduce((eth, a) => eth.plus(a.ethAmount), BigNumber(0));
+    const usd = activeOrders.bids.reduce((usd, b) => usd.plus(b.inputUsdAmount), BigNumber(0));
+    const eth = activeOrders.asks.reduce((eth, a) => eth.plus(a.inputEthAmount), BigNumber(0));
     console.info('USD: ', usd.toFixed());
     console.info('ETH ', eth.toFixed());
   }, 30000);
