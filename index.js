@@ -121,7 +121,7 @@ function checkClosedPositions(activeOrders, highestBid, lowestAsk) {
   return aquiredAssets;
 }
 
-async function main() {
+async function updateOrders() {
   const res = await fetch(orderbookUrl);
   if (res.status !== 200) {
     console.error('Failed to reach orderbook api status', res.status);
@@ -144,12 +144,23 @@ async function main() {
   const aquiredAssets = checkClosedPositions(activeOrders, highestBid, lowestAsk);
   account.usd += aquiredAssets.usd;
   account.eth += aquiredAssets.eth;
-
-  console.info('---ACCOUNT balance---');
-  console.info('USD: ', account.usd.toString());
-  console.info('ETH ', account.eth.toString());
-
   placeOrders(bidPlacementRange, askPlacementRange);
+}
+
+async function main() {
+  // bot order updating
+  let isUpdating;
+  setInterval(async () => {
+    if (isUpdating) { console.error('Perfomance in order update interval'); return; }
+    await updateOrders();
+  }, 5000);
+
+  // balance printing
+  setInterval(() => {
+    console.info('---ACCOUNT balance---');
+    console.info('USD: ', account.usd.toString());
+    console.info('ETH ', account.eth.toString());
+  }, 30000);
 }
 
 if (process.env.NODE_ENV === 'dev') {
