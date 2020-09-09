@@ -7,12 +7,12 @@ const {
   allowedActiveOrders,
 } = require('./config');
 
-let account = {
+const account = {
   usd: BigNumber(initialAccount.usd),
   eth: BigNumber(initialAccount.eth)
 };
 
-let activeOrders = {
+const activeOrders = {
   bids: [],
   asks: [],
 };
@@ -55,37 +55,37 @@ function getOrderPrice(placementRange) {
 }
 
 function getBidOrderAmounts(orderPrice, accountUsd, activeBids, maxBids) {
-  const bidUsdAmount = BigNumber(accountUsd).dividedBy(maxBids - activeBids);
-  const bidEthAmount = BigNumber(bidUsdAmount / orderPrice);
-  return { bidUsdAmount, bidEthAmount };
+  const inputUsdAmount = BigNumber(accountUsd).dividedBy(maxBids - activeBids).dp(2, BigNumber.HALF_DOWN);
+  const outputEthAmount = BigNumber(inputUsdAmount / orderPrice);
+  return { inputUsdAmount, outputEthAmount };
 }
 
 function getAskOrderAmounts(orderPrice, accountEth, activeAsks, maxAsks) {
-  const askEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks);
-  const askUsdAmount = BigNumber(askEthAmount * orderPrice);
-  return { askUsdAmount, askEthAmount };
+  const inputEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks);
+  const outputUsdAmount = BigNumber(inputEthAmount * orderPrice).dp(2, BigNumber.HALF_DOWN);
+  return { inputEthAmount, outputUsdAmount };
 }
 
 function placeBid(bidPlacementRange) {
   const orderPrice = getOrderPrice(bidPlacementRange);
-  const { bidUsdAmount, bidEthAmount } = getBidOrderAmounts(
+  const { inputUsdAmount, outputEthAmount } = getBidOrderAmounts(
     orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
   );
-  activeOrders.bids.push({ orderPrice, usdAmount: bidUsdAmount, ethAmount: bidEthAmount });
-  account.usd = account.usd.minus(bidUsdAmount);
+  activeOrders.bids.push({ orderPrice, outputEthAmount, inputUsdAmount });
+  account.usd = account.usd.minus(inputUsdAmount);
 
-  console.info(`PLACED BID @${orderPrice} ${bidEthAmount}`);
+  console.info(`PLACED BID @${orderPrice} ${outputEthAmount}`);
 }
 
 function placeAsk(askPlacementRange) {
   const orderPrice = getOrderPrice(askPlacementRange);
-  const { askUsdAmount, askEthAmount } = getAskOrderAmounts(
+  const { inputEthAmount, ouputUsdAmount } = getAskOrderAmounts(
     orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
   );
-  activeOrders.asks.push({ orderPrice, usdAmount: askUsdAmount, ethAmount: askEthAmount });
-  account.eth = account.eth.minus(askEthAmount);
+  activeOrders.asks.push({ orderPrice, ouputUsdAmount, inputEthAmount });
+  account.eth = account.eth.minus(inputEthAmount);
 
-  console.info(`PLACED ASK @${orderPrice} ${askEthAmount}`);
+  console.info(`PLACED ASK @${orderPrice} ${inputEthAmount}`);
 }
 
 function placeOrders(bidPlacementRange, askPlacementRange) {

@@ -77,8 +77,18 @@ describe('bot', function () {
       const activeBids = 5;
       const allowedActiveBids = 7;
 
-      const { bidUsdAmount } = _getBidOrderAmounts(orderPrice, accountUsd, activeBids, allowedActiveBids);
-      expect(bidUsdAmount.toFixed()).to.equal('500');
+      const { inputUsdAmount } = _getBidOrderAmounts(orderPrice, accountUsd, activeBids, allowedActiveBids);
+      expect(inputUsdAmount.toFixed()).to.equal('500');
+    });
+
+    it('should return equally rounded down usd portion if number is indivisible', function () {
+      const orderPrice = 500;
+      const accountUsd = 1000;
+      const activeBids = 5;
+      const allowedActiveBids = 8;
+
+      const { inputUsdAmount } = _getBidOrderAmounts(orderPrice, accountUsd, activeBids, allowedActiveBids);
+      expect(inputUsdAmount.toFixed()).to.equal('333.33');
     });
 
     it('should return correctly converted eth from equally divided usd', function () {
@@ -87,8 +97,8 @@ describe('bot', function () {
       const activeBids = 5;
       const allowedActiveBids = 7;
 
-      const { bidEthAmount } = _getBidOrderAmounts(orderPrice, accountUsd, activeBids, allowedActiveBids);
-      expect(bidEthAmount.toFixed()).to.equal('1');
+      const { outputEthAmount } = _getBidOrderAmounts(orderPrice, accountUsd, activeBids, allowedActiveBids);
+      expect(outputEthAmount.toFixed()).to.equal('1');
     });
   });
 
@@ -99,8 +109,8 @@ describe('bot', function () {
       const activeAsks = 5;
       const allowedActiveAsks = 7;
 
-      const { askEthAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
-      expect(askEthAmount.toFixed()).to.equal('0.5');
+      const { inputEthAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
+      expect(inputEthAmount.toFixed()).to.equal('0.5');
     });
 
     it('should return correctly converted usd from equally divided eth', function () {
@@ -109,8 +119,8 @@ describe('bot', function () {
       const activeAsks = 5;
       const allowedActiveAsks = 7;
 
-      const { askUsdAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
-      expect(askUsdAmount.toFixed()).to.equal('250');
+      const { outputUsdAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
+      expect(outputUsdAmount.toFixed()).to.equal('250');
     });
   });
 
