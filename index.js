@@ -61,6 +61,47 @@ function getAskOrderAmounts(orderPrice, accountEth, activeAsks, maxAsks) {
   return { askUsdAmount, askEthAmount };
 }
 
+function placeBid(bidPlacementRange) {
+  const orderPrice = getOrderPrice(bidPlacementRange);
+  const { bidUsdAmount, bidEthAmount } = getBidOrderAmounts(
+    orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
+  );
+  activeOrders.bids.push({ orderPrice, usdAmount: bidUsdAmount, ethAmount: bidEthAmount });
+  account.usd -= bidUsdAmount;
+
+  console.info(`BID PLACED @${orderPrice} ${bidEthAmount}`);
+}
+
+function placeAsk(askPlacementRange) {
+  const orderPrice = getOrderPrice(askPlacementRange);
+  const { askUsdAmount, askEthAmount } = getAskOrderAmounts(
+    orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
+  );
+  activeOrders.asks.push({ orderPrice, usdAmount: askUsdAmount, ethAmount: askEthAmount });
+  account.eth -= askEthAmount;
+
+  console.info(`ASK PLACED @${orderPrice} ${askEthAmount}`);
+}
+
+function placeOrders(bidPlacementRange, askPlacementRange) {
+  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
+  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
+
+  const activeBids = activeOrders.bids.length;
+  if (activeBids < allowedActiveOrders) {
+    for (let i = 0; i < allowedActiveOrders - activeBids; i++) {
+      placeBid(bidPlacementRange);
+    }
+  }
+
+  const activeAsks = activeOrders.asks.length;
+  if (activeAsks < allowedActiveOrders) {
+    for (let i = 0; i < allowedActiveOrders - activeAsks; i++) {
+      placeAsk(askPlacementRange);
+    }
+  }
+}
+
 async function main() {
   const res = await fetch(orderbookUrl);
   if (res.status !== 200) {
@@ -78,36 +119,7 @@ async function main() {
   const bidPlacementRange = getPlacementRange(highestBid, orderRange, { upper: spreadMiddle });
   const askPlacementRange = getPlacementRange(lowestAsk, orderRange, { lower: spreadMiddle });
 
-  console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
-  console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
-
-  const activeBids = activeOrders.bids.length;
-  if (activeBids < allowedActiveOrders) {
-    for (let i = 0; i < allowedActiveOrders - activeBids; i++) {
-      const orderPrice = getOrderPrice(bidPlacementRange);
-      const { bidUsdAmount, bidEthAmount } = getBidOrderAmounts(
-        orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
-      );
-      activeOrders.bids.push({ orderPrice, usdAmount: bidUsdAmount, ethAmount: bidEthAmount });
-      account.usd -= bidUsdAmount;
-
-      console.info(`BID PLACED @${orderPrice} ${bidEthAmount}`);
-    }
-  }
-
-  const activeAsks = activeOrders.asks.length;
-  if (activeAsks < allowedActiveOrders) {
-    for (let i = 0; i < allowedActiveOrders - activeAsks; i++) {
-      const orderPrice = getOrderPrice(askPlacementRange);
-      const { askUsdAmount, askEthAmount } = getAskOrderAmounts(
-        orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
-      );
-      activeOrders.asks.push({ orderPrice, usdAmount: askUsdAmount, ethAmount: askEthAmount });
-      account.eth -= askEthAmount;
-
-      console.info(`ASK PLACED @${orderPrice} ${askEthAmount}`);
-    }
-  }
+  placeOrders(bidPlacementRange, askPlacementRange);
 }
 
 if (process.env.NODE_ENV === 'dev') {
