@@ -4,7 +4,8 @@
   "description": "deversifi based market making bot",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha"
+    "test": "nyc mocha",
+    "start": "node ./index.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +25,8 @@
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "2.22.0",
     "eslint-plugin-mocha": "8.0.0"
+  },
+  "dependencies": {
+    "node-fetch": "2.6.1"
   }
 }
