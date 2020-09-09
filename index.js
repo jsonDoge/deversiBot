@@ -1,6 +1,16 @@
 const fetch = require('node-fetch');
 const BigNumber = require('bignumber.js');
-const { orderbookUrl, orderRange } = require('./config');
+const {
+  orderbookUrl,
+  orderRange,
+  account,
+  allowedActiveOrders,
+} = require('./config');
+
+let activeOrders = {
+  bids: [],
+  asks: [],
+};
 
 function getSpreadMargins(orders) {
   let asks = [];
@@ -30,11 +40,28 @@ function getPlacementRange(bestValue, percentRange, boundaries = {}) {
   let low = BigNumber(bestValue).dividedBy(percentageMultiplier);
 
   high = boundaries.upper && high.isGreaterThan(boundaries.upper) ? boundaries.upper : high;
-  low = boundaries.lower && low.isLessThan(boundaries.lower) ? boundaries.lower : low; 
+  low = boundaries.lower && low.isLessThan(boundaries.lower) ? boundaries.lower : low;
   return { low, high };
 }
 
-async function main () {
+function getOrderPrice(placementRange) {
+  const rangeSpread = placementRange.high.minus(placementRange.low);
+  return BigNumber.random().times(rangeSpread).plus(placementRange.low);
+}
+
+function getBidOrderAmounts(orderPrice, accountUsd, activeBids, maxBids) {
+  const bidUsdAmount = BigNumber(accountUsd).dividedBy(maxBids - activeBids);
+  const bidEthAmount = BigNumber(bidUsdAmount / orderPrice);
+  return { bidUsdAmount, bidEthAmount };
+}
+
+function getAskOrderAmounts(orderPrice, accountEth, activeAsks, maxAsks) {
+  const askEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks);
+  const askUsdAmount = BigNumber(askEthAmount * orderPrice);
+  return { askUsdAmount, askEthAmount };
+}
+
+async function main() {
   const res = await fetch(orderbookUrl);
   if (res.status !== 200) {
     console.error('Failed to reach orderbook api status', res.status);
@@ -53,13 +80,43 @@ async function main () {
 
   console.info(`bid placement boundaries: ${bidPlacementRange.high.toFixed()} ${bidPlacementRange.low.toFixed()}`);
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
+
+  const activeBids = activeOrders.bids.length;
+  if (activeBids < 5) {
+    for (let i = 0; i < 5 - activeBids; i++) {
+      const orderPrice = getOrderPrice(bidPlacementRange);
+      const { bidUsdAmount, bidEthAmount } = getBidOrderAmounts(
+        orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
+      );
+      activeOrders.bids.push({ orderPrice, usdAmount: bidUsdAmount, ethAmount: bidEthAmount });
+      account.usd -= bidUsdAmount;
+
+      console.info(`BID PLACED @${orderPrice} ${bidEthAmount}`);
+    }
+  }
+
+  const activeAsks = activeOrders.asks.length;
+  if (activeAsks < 5) {
+    for (let i = 0; i < 5 - activeAsks; i++) {
+      const orderPrice = getOrderPrice(askPlacementRange);
+      const { askUsdAmount, askEthAmount } = getAskOrderAmounts(
+        orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
+      );
+      activeOrders.asks.push({ orderPrice, usdAmount: askUsdAmount, ethAmount: askEthAmount });
+      account.eth -= askEthAmount;
+
+      console.info(`ASK PLACED @${orderPrice} ${askEthAmount}`);
+    }
+  }
 }
 
 if (process.env.NODE_ENV === 'dev') {
-main();
+  main();
 }
 
 module.exports = {
   _getSpreadMargins: getSpreadMargins,
   _getPlacementRange: getPlacementRange,
+  _getBidOrderAmounts: getBidOrderAmounts,
+  _getAskOrderAmounts: getAskOrderAmounts,
 };
