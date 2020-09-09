@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const BigNumber = require('bignumber.js');
 
 const { _getSpreadMargins, _getPlacementRange } = require('../index');
 
@@ -39,6 +40,24 @@ describe('bot', function () {
       const { high, low } = _getPlacementRange(bestValue, orderRange);
       expect(high.toFixed()).to.equal('10.4');
       expect(low.toFixed()).to.equal('9.61538461538461538462');
+    });
+
+    it('should not cross provided upper boundary', function () {
+      const orderRange = 50;
+      const bestValue = 10;
+      const upperBoundary = BigNumber(11);
+
+      const { high } = _getPlacementRange(bestValue, orderRange, { upper: upperBoundary });
+      expect(high.toFixed()).to.equal(upperBoundary.toFixed());
+    });
+
+    it('should not cross provided lower boundary', function () {
+      const orderRange = 50;
+      const bestValue = 10;
+      const lowerBoundary = BigNumber(9);
+
+      const { low } = _getPlacementRange(bestValue, orderRange, { lower: lowerBoundary });
+      expect(low.toFixed()).to.equal(lowerBoundary.toFixed());
     });
   });
 });
