@@ -55,7 +55,9 @@ async function main () {
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 }
 
+if (process.env.NODE_ENV === 'dev') {
 main();
+}
 
 module.exports = {
   _getSpreadMargins: getSpreadMargins,
