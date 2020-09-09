@@ -56,12 +56,12 @@ function getOrderPrice(placementRange) {
 
 function getBidOrderAmounts(orderPrice, accountUsd, activeBids, maxBids) {
   const inputUsdAmount = BigNumber(accountUsd).dividedBy(maxBids - activeBids).dp(2, BigNumber.HALF_DOWN);
-  const outputEthAmount = BigNumber(inputUsdAmount / orderPrice);
+  const outputEthAmount = BigNumber(inputUsdAmount / orderPrice).dp(18, BigNumber.HALF_DOWN);
   return { inputUsdAmount, outputEthAmount };
 }
 
 function getAskOrderAmounts(orderPrice, accountEth, activeAsks, maxAsks) {
-  const inputEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks);
+  const inputEthAmount = BigNumber(accountEth).dividedBy(maxAsks - activeAsks).dp(18, BigNumber.HALF_DOWN);
   const outputUsdAmount = BigNumber(inputEthAmount * orderPrice).dp(2, BigNumber.HALF_DOWN);
   return { inputEthAmount, outputUsdAmount };
 }

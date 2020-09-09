@@ -10,7 +10,7 @@ const {
 } = require('../index.js');
 
 // silence console
-console.info = () => {};
+console.info = () => { };
 
 describe('bot', function () {
   describe('getSpreadMargins', function () {
@@ -111,6 +111,17 @@ describe('bot', function () {
 
       const { inputEthAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
       expect(inputEthAmount.toFixed()).to.equal('0.5');
+    });
+
+    it('should return equally rounded down eth portion if number is indivisible', function () {
+      const orderPrice = 500;
+      const accountEth = 1;
+      const activeAsks = 5;
+      const allowedActiveAsks = 8;
+
+      const { inputEthAmount } = _getAskOrderAmounts(orderPrice, accountEth, activeAsks, allowedActiveAsks);
+      const expected = BigNumber(1).dividedBy(3).dp(18, BigNumber.HALF_DOWN);
+      expect(inputEthAmount.toFixed()).to.equal(expected.toFixed());
     });
 
     it('should return correctly converted usd from equally divided eth', function () {
