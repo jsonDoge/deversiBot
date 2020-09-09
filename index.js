@@ -82,8 +82,8 @@ async function main() {
   console.info(`ask placement boundaries: ${askPlacementRange.high.toFixed()} ${askPlacementRange.low.toFixed()}`);
 
   const activeBids = activeOrders.bids.length;
-  if (activeBids < 5) {
-    for (let i = 0; i < 5 - activeBids; i++) {
+  if (activeBids < allowedActiveOrders) {
+    for (let i = 0; i < allowedActiveOrders - activeBids; i++) {
       const orderPrice = getOrderPrice(bidPlacementRange);
       const { bidUsdAmount, bidEthAmount } = getBidOrderAmounts(
         orderPrice, account.usd, activeOrders.bids.length, allowedActiveOrders
@@ -96,8 +96,8 @@ async function main() {
   }
 
   const activeAsks = activeOrders.asks.length;
-  if (activeAsks < 5) {
-    for (let i = 0; i < 5 - activeAsks; i++) {
+  if (activeAsks < allowedActiveOrders) {
+    for (let i = 0; i < allowedActiveOrders - activeAsks; i++) {
       const orderPrice = getOrderPrice(askPlacementRange);
       const { askUsdAmount, askEthAmount } = getAskOrderAmounts(
         orderPrice, account.eth, activeOrders.asks.length, allowedActiveOrders
